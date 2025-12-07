@@ -1,0 +1,221 @@
+---
+// src/pages/index.astro
+// Pautti Neteru - Kemetic Tree of Life
+import '../styles/styles.css';
+---
+
+<html lang="en">
+<head>
+  <script is:inline>
+    // Check if first visit - redirect to welcome page
+    if (!localStorage.getItem('tol_hasVisited')) {
+      window.location.href = '/welcome';
+    }
+  </script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pautti Neteru - Kemetic Tree of Life</title>
+</head>
+<body>
+  <div class="starfield"></div>
+  
+  <div class="container">
+    <div class="main-stage">
+      <div class="neter-info">
+        <div class="neter-navigation">
+          <button id="prev-neter-btn" class="nav-arrow-btn" aria-label="Previous sphere">←</button>
+          <div class="neter-navigation__center">
+            <div class="sphere-label">Sphere <span id="sphere-num">0</span></div>
+            <h2 class="neter-title" id="neter-name">Amun-Nun</h2>
+            <div class="neter-subtitle" id="neter-title">The Hidden One</div>
+          </div>
+          <button id="next-neter-btn" class="nav-arrow-btn" aria-label="Next sphere">→</button>
+        </div>
+        <div class="neter-badge" id="neter-badge">432 Hz • Crown + Beyond</div>
+        <p class="teaching" id="neter-teaching">The unmanifest source of all creation, infinite potential.</p>
+      </div>
+
+      <div class="three-container" id="three-mount"></div>
+
+      <div class="controls">
+        <button id="play-btn" class="play-btn stopped">▶</button>
+        <div class="volume-control">
+          <span class="volume-icon">🔊</span>
+          <input type="range" id="volume-slider" class="volume-slider" min="0" max="100" value="75" aria-label="Volume">
+        </div>
+        <button id="open-journal-modal-btn" class="control-btn">📖</button>
+        <button id="log-btn" class="control-btn">📊</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Journal Modal -->
+  <div id="journal-modal" class="modal">
+    <div class="modal-header">
+      <h3>Reflection Journal</h3>
+      <button id="close-journal" class="modal-close">×</button>
+    </div>
+    <div class="journal-modal-body">
+      <textarea id="journal-text" placeholder="Record your insights and experiences..."></textarea>
+      <div class="journal-modal-actions">
+        <button id="modal-record-journal-btn" class="record-btn" aria-label="Record Audio" title="Record Audio"></button>
+        <button id="save-journal" class="btn-primary">Save Reflection</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Log Modal -->
+  <div id="log-modal" class="modal">
+    <div class="modal-header">
+      <h3>Practice History</h3>
+      <button id="close-log" class="modal-close">×</button>
+    </div>
+    <div id="log-list"></div>
+  </div>
+
+  <div id="backdrop" class="backdrop"></div>
+
+  <!-- Side Panel -->
+  <aside id="side-panel" class="side-panel" aria-hidden="true">
+    <div class="side-panel__header">
+      <div>
+        <p class="side-panel__eyebrow">Now Exploring</p>
+        <h2 class="side-panel__title" id="panel-neter-name">Amun-Nun</h2>
+        <p class="side-panel__subtitle" id="panel-neter-title">The Hidden One</p>
+      </div>
+      <button id="side-panel-close" class="side-panel__close" aria-label="Close guidance panel">×</button>
+    </div>
+
+    <div class="side-panel__section">
+      <div class="side-panel__metrics">
+        <div>
+          <p class="side-panel__metric-label">Frequency</p>
+          <p class="side-panel__metric-value" id="panel-neter-frequency">432 Hz</p>
+        </div>
+        <div>
+          <p class="side-panel__metric-label">Chakra</p>
+          <p class="side-panel__metric-value" id="panel-neter-chakra">Crown + Beyond</p>
+        </div>
+      </div>
+      <p class="side-panel__teaching" id="panel-neter-teaching">The unmanifest source of all creation, infinite potential.</p>
+    </div>
+
+    <div class="side-panel__section">
+      <p class="side-panel__eyebrow">Quick Actions</p>
+      <div class="side-panel__actions">
+        <button id="panel-play-btn" class="side-panel__action">Play Tone</button>
+        <button id="panel-journal-btn" class="side-panel__action">Open Journal</button>
+        <button id="panel-log-btn" class="side-panel__action">Practice Log</button>
+      </div>
+    </div>
+
+    <div class="side-panel__section">
+      <p class="side-panel__eyebrow">The Divine Company</p>
+      <div class="neter-grid" id="neter-grid"></div>
+    </div>
+
+    <div class="side-panel__section">
+      <p class="side-panel__eyebrow">Navigator</p>
+      <ul id="side-panel-list" class="side-panel__list"></ul>
+    </div>
+  </aside>
+
+  <!-- Eye of Ra Toggle Button (for Side Panel with Neters) -->
+  <button class="menu-toggle" id="menu-btn" aria-label="Toggle Neter Panel">
+    <span class="eye-of-ra">𓂀</span>
+  </button>
+
+  <!-- Eye of Tehuti Toggle Button (for Journal Panel) -->
+  <button class="journal-toggle" id="journal-btn" aria-label="Toggle Journal">
+    <span class="eye-of-tehuti">𓂀</span>
+  </button>
+
+  <!-- Theme Toggle Button -->
+  <button class="theme-toggle" id="theme-btn" aria-label="Toggle Light/Dark Mode">
+    <span class="theme-icon" id="theme-icon">☀️</span>
+  </button>
+
+  <!-- Journal Panel -->
+  <aside id="journal-panel" class="journal-panel" aria-hidden="true">
+    <div class="journal-panel__header">
+      <div class="journal-panel__header-content">
+        <div>
+          <h2>Sacred Journal</h2>
+          <p class="journal-subtitle">Records of the Divine Path</p>
+        </div>
+        <button id="journal-panel-close" class="side-panel__close" aria-label="Close journal panel">×</button>
+      </div>
+      <button id="add-journal-entry-btn" class="side-panel__action add-journal-btn">
+        ✍️ New Entry
+      </button>
+      <!-- COMMENTED OUT: Panel record button - moved to modal-only workflow -->
+      <!-- <button id="record-journal-btn" class="record-btn record-journal-spacing" aria-label="Record Audio" title="Record Audio"></button> -->
+    </div>
+    <div class="journal-entries" id="journal-entries">
+      <!-- Journal entries will be populated here -->
+    </div>
+  </aside>
+
+  <div id="side-panel-backdrop" class="side-panel__backdrop"></div>
+
+  <script is:inline>
+    // Theme Toggle Logic - runs immediately to prevent flash
+    (function initTheme() {
+      const html = document.documentElement;
+      const savedTheme = localStorage.getItem('tol_theme') || 'light';
+      html.setAttribute('data-theme', savedTheme);
+      
+      // Update icon when DOM is ready
+      document.addEventListener('DOMContentLoaded', () => {
+        const themeBtn = document.getElementById('theme-btn');
+        const themeIcon = document.getElementById('theme-icon');
+        
+        if (themeIcon) {
+          themeIcon.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+        }
+        
+        if (themeBtn && themeIcon) {
+          themeBtn.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('tol_theme', newTheme);
+            themeIcon.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+          });
+        }
+      });
+    })();
+  </script>
+
+  <script>
+    // Import THREE.js from npm and make it globally available
+    import * as THREE from 'three';
+    (window as any).THREE = THREE;
+    
+    // Import and initialize the app
+    import { init } from '../js/app/commander.js';
+    
+    console.log('🚀 Scripts loaded');
+    
+    // Wait for DOM to be ready
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('📄 DOM Content Loaded');
+        try {
+          init();
+        } catch (err) {
+          console.error('❌ Initialization failed:', err);
+        }
+      });
+    } else {
+      console.log('📄 DOM already ready');
+      try {
+        init();
+      } catch (err) {
+        console.error('❌ Initialization failed:', err);
+      }
+    }
+  </script>
+</body>
+</html>
