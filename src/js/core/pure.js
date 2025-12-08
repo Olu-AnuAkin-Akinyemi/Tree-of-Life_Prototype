@@ -144,7 +144,8 @@ export const PAUTTI_NETERU = {
 
 const STORAGE_KEYS = {
   sessions: 'kemetic_practices',
-  journals: 'kemetic_journals'
+  journals: 'kemetic_journals',
+  lastNeter: 'kemetic_last_neter'
 };
 
 // ============================================================================

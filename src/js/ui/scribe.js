@@ -626,16 +626,23 @@ export const renderJournalEntries = (entries) => {
  * @param {Object} entry - Journal entry object
  */
 export const showJournalEntryModal = (entry) => {
+  // Remove any existing entry modal first (prevent stacking)
+  const existingModal = document.getElementById('entry-detail-modal');
+  if (existingModal) {
+    existingModal.remove();
+  }
+
   const icon = entry.type === 'audio' ? '🎤' : '✍️';
   const modal = document.createElement('div');
   modal.className = 'modal visible';
+  modal.id = 'entry-detail-modal';
   modal.style.display = 'block';
   modal.style.zIndex = '1300';
   modal.innerHTML = `
     <div class="modal-content" style="max-width: 600px; max-height: 80vh; overflow-y: auto;">
       <div class="modal-header">
         <h3>${icon} ${entry.neterName || 'Journal Entry'}</h3>
-        <button class="modal-close" onclick="this.closest('.modal').remove()">×</button>
+        <button class="modal-close" id="entry-modal-close">×</button>
       </div>
       <div style="padding: 1rem; font-size: 0.9rem; opacity: 0.7; border-bottom: 1px solid rgba(255,215,0,0.1);">
         ${formatDate(entry.date)}
@@ -649,9 +656,49 @@ export const showJournalEntryModal = (entry) => {
       <div style="padding: 1.5rem; line-height: 1.8; white-space: pre-wrap;">
         ${entry.text}
       </div>
+      <div style="padding: 1rem 1.5rem; border-top: 1px solid rgba(255,215,0,0.1); display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button class="side-panel__action" id="delete-entry-btn" style="background: rgba(255, 80, 80, 0.15); border-color: rgba(255, 80, 80, 0.4); color: #ff6b6b;">
+          🗑️ Delete
+        </button>
+      </div>
     </div>
   `;
   document.body.appendChild(modal);
+  
+  // Close button handler
+  modal.querySelector('#entry-modal-close').addEventListener('click', () => modal.remove());
+  
+  // Delete button handler - uses two-click confirmation (no native dialog)
+  const deleteBtn = modal.querySelector('#delete-entry-btn');
+  let confirmPending = false;
+  
+  deleteBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!confirmPending) {
+      // First click - show confirmation state
+      confirmPending = true;
+      deleteBtn.innerHTML = '⚠️ Click again to confirm';
+      deleteBtn.style.background = 'rgba(255, 50, 50, 0.3)';
+      deleteBtn.style.borderColor = 'rgba(255, 50, 50, 0.6)';
+      
+      // Reset after 3 seconds if not confirmed
+      setTimeout(() => {
+        if (confirmPending) {
+          confirmPending = false;
+          deleteBtn.innerHTML = '🗑️ Delete';
+          deleteBtn.style.background = 'rgba(255, 80, 80, 0.15)';
+          deleteBtn.style.borderColor = 'rgba(255, 80, 80, 0.4)';
+        }
+      }, 3000);
+    } else {
+      // Second click - actually delete
+      console.log('🗑️ Confirmed deletion of entry:', entry.id);
+      modal.remove();
+      window.dispatchEvent(new CustomEvent('deleteJournalEntry', { detail: { entryId: entry.id } }));
+    }
+  });
   
   // Close on backdrop click
   modal.addEventListener('click', (e) => {

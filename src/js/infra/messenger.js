@@ -317,3 +317,50 @@ export const loadSessions = () => safeRead(storageKeys.sessions);
  * @returns {Array} Array of journal objects
  */
 export const loadJournals = () => safeRead(storageKeys.journals);
+/**
+ * Delete a journal entry by ID
+ * @param {number|string} entryId - ID of the entry to delete
+ * @returns {Array} Updated journals list
+ */
+export const deleteJournalEntry = (entryId) => {
+  const journals = safeRead(storageKeys.journals);
+  // Convert to number for consistent comparison (IDs are timestamps)
+  const targetId = Number(entryId);
+  const updated = journals.filter(entry => entry.id !== targetId);
+  safeWrite(storageKeys.journals, updated);
+  console.log('🗑️ Journal entry deleted:', targetId, 'Entries remaining:', updated.length);
+  return updated;
+};
+
+/**
+ * Save the last visited neter ID
+ * @param {number} neterId - The neter ID to save
+ */
+export const saveLastNeter = (neterId) => {
+  try {
+    localStorage.setItem(storageKeys.lastNeter, neterId.toString());
+  } catch (err) {
+    console.warn('Could not save last neter:', err);
+  }
+};
+
+/**
+ * Load the last visited neter ID
+ * @returns {number|null} The last neter ID, or null if none saved (new user)
+ */
+export const loadLastNeter = () => {
+  try {
+    const stored = localStorage.getItem(storageKeys.lastNeter);
+    if (stored !== null) {
+      const id = parseInt(stored, 10);
+      // Validate it's a valid neter ID (0-10)
+      if (!isNaN(id) && id >= 0 && id <= 10) {
+        return id;
+      }
+    }
+    return null; // New user - no saved neter
+  } catch (err) {
+    console.warn('Could not load last neter:', err);
+    return null;
+  }
+};

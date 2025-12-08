@@ -9,6 +9,7 @@
 
 import {
   getDailyNeter,
+  getNeterById,
   createInitialState,
   updateNeterInState,
   togglePlaying as pureTogglePlaying,
@@ -23,10 +24,13 @@ import {
   setMuteState,
   logSession,
   saveJournalEntry,
+  deleteJournalEntry,
   loadSessions,
   loadJournals,
   setVolume,
-  getVolume
+  getVolume,
+  saveLastNeter,
+  loadLastNeter
 } from '../infra/messenger.js';
 
 import {
@@ -71,6 +75,9 @@ export const selectNeter = async (neterId) => {
   
   // Update state
   state = updateNeterInState(state, neterId);
+  
+  // Persist the selection for returning users
+  saveLastNeter(neterId);
   
   // Update UI
   renderNeterInfo(state.currentNeter);
@@ -659,6 +666,12 @@ export const handleOpenJournal = () => {
     backdrop.classList.remove('visible');
   }
   
+  // Close any open entry detail modal (prevent UI clutter)
+  const entryDetailModal = document.getElementById('entry-detail-modal');
+  if (entryDetailModal) {
+    entryDetailModal.remove();
+  }
+  
   openModal('journal');
 };
 
@@ -694,6 +707,21 @@ export const handleOpenLog = () => {
  * Close journal modal
  */
 export const handleCloseJournal = () => {
+  // Auto-stop recording if active
+  if (modalRecording.isRecording) {
+    if (modalRecording.timerId) clearInterval(modalRecording.timerId);
+    if (modalRecording.recognition) {
+      modalRecording.recognition.stop();
+    }
+    modalRecording.isRecording = false;
+    
+    const recordBtn = document.getElementById('modal-record-journal-btn');
+    if (recordBtn) {
+      recordBtn.classList.remove('recording');
+    }
+    console.log('🎤 Recording auto-stopped on modal close');
+  }
+  
   closeModal('journal');
 };
 
@@ -708,6 +736,21 @@ export const handleCloseLog = () => {
  * Close all modals (backdrop click)
  */
 export const handleCloseAllModals = () => {
+  // Auto-stop recording if active
+  if (modalRecording.isRecording) {
+    if (modalRecording.timerId) clearInterval(modalRecording.timerId);
+    if (modalRecording.recognition) {
+      modalRecording.recognition.stop();
+    }
+    modalRecording.isRecording = false;
+    
+    const recordBtn = document.getElementById('modal-record-journal-btn');
+    if (recordBtn) {
+      recordBtn.classList.remove('recording');
+    }
+    console.log('🎤 Recording auto-stopped on modal close');
+  }
+  
   closeModal('journal');
   closeModal('log');
   closeSidePanel();
@@ -735,6 +778,12 @@ export const handleOpenJournalWithAutoRecord = () => {
   
   if (backdrop && backdrop.classList.contains('visible')) {
     backdrop.classList.remove('visible');
+  }
+  
+  // Close any open entry detail modal (prevent UI clutter)
+  const entryDetailModal = document.getElementById('entry-detail-modal');
+  if (entryDetailModal) {
+    entryDetailModal.remove();
   }
   
   // Open modal
@@ -1036,7 +1085,18 @@ export const wireUpEvents = () => {
       }
       closeModal('journal');
       closeModal('log');
+      // Also close entry detail modal if open
+      const entryModal = document.getElementById('entry-detail-modal');
+      if (entryModal) entryModal.remove();
     }
+  });
+
+  // Listen for journal entry deletion events from entry modal
+  window.addEventListener('deleteJournalEntry', (e) => {
+    const { entryId } = e.detail;
+    const updated = deleteJournalEntry(entryId);
+    renderJournalEntries(updated);
+    console.log('🗑️ Journal entry deleted and list refreshed');
   });
 };
 
@@ -1048,7 +1108,7 @@ export const wireUpEvents = () => {
  * Initialize the entire application
  */
 export const init = () => {
-  console.log('🌟 Initializing Pautti Neteru...');
+  console.log('🌟 Initializing Neteru...');
 
   // Initialize audio context without blocking
   ensureAudioContext().catch(() => {
@@ -1058,9 +1118,28 @@ export const init = () => {
   console.log('🔄 Continuing initialization...');
 
   try {
-    // Get daily neter
+    // Determine starting neter:
+    // - Returning user: load their last visited neter
+    // - New user: start at sphere 0 (Amun-Nun)
+    const lastNeterId = loadLastNeter();
+    let startingNeter;
+    
+    if (lastNeterId !== null) {
+      // Returning user - resume where they left off
+      startingNeter = getNeterById(lastNeterId);
+      console.log('👋 Welcome back! Resuming at:', startingNeter.name);
+    } else {
+      // New user - start at sphere 0
+      startingNeter = getNeterById(0);
+      console.log('✨ New user! Starting at sphere 0:', startingNeter.name);
+      // Save initial selection
+      saveLastNeter(0);
+    }
+    
+    state.currentNeter = startingNeter;
+    
+    // Also get daily neter for banner display
     const daily = getDailyNeter();
-    state.currentNeter = daily;
     console.log('📅 Daily neter:', daily.name);
 
     // Render initial UI
