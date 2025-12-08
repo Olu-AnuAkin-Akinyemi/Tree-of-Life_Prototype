@@ -8,6 +8,26 @@
 
 ---
 
+## 📸 Media Gallery
+
+<div align="center">
+  <h3>The Hub</h3>
+  <img src="public/img/screenshots/hub.png" width="800" alt="Main Interface showing 3D Ankh and Controls" />
+  
+  <br/><br/>
+  
+  <h3>Neter Info & Journaling</h3>
+  <img src="public/img/screenshots/neter-info.png" width="400" alt="Neter Information Panel" />
+  <img src="public/img/screenshots/journal.png" width="400" alt="Journaling Panel" />
+  
+  <br/><br/>
+  
+  <h3>Welcome Screen</h3>
+  <img src="public/img/screenshots/cover.png" width="600" alt="Welcome Screen" />
+</div>
+
+---
+
 ## ✨ Core Features
 
 - **🎵 Sacred Frequency Tones**: 10 healing frequencies aligned with the Kemetic Tree of Life spheres (174-963 Hz)
