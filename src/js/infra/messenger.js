@@ -8,6 +8,7 @@
  */
 
 import { storageKeys, isValidFrequency } from '../core/pure.js';
+import { getSetting } from '../core/settings.js';
 
 // ============================================================================
 // AUDIO ENGINE - Web Audio API
@@ -69,10 +70,11 @@ export const playFrequency = async (frequency) => {
   const storedVolume = getVolume();
   const targetVolume = (storedVolume / 100) * 0.3;
   
-  // Fade in over 0.5 seconds
+  // Fade in using user setting
+  const fadeDuration = getSetting('fadeDuration') || 0.8;
   const now = audioContext.currentTime;
   gainNode.gain.setValueAtTime(0, now);
-  gainNode.gain.linearRampToValueAtTime(targetVolume, now + 0.5);
+  gainNode.gain.linearRampToValueAtTime(targetVolume, now + fadeDuration);
   
   isPlaying = true;
   return Date.now();
@@ -150,7 +152,7 @@ export const stopSound = async () => {
   
   try {
     const now = audioContext.currentTime;
-    const fadeTime = 0.8; // 800ms fade out
+    const fadeTime = getSetting('fadeDuration') || 0.8; // Use user setting
     
     // Fade out
     gainNode.gain.setValueAtTime(gainNode.gain.value, now);

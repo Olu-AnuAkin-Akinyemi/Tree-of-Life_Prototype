@@ -73,6 +73,88 @@ import '../styles/styles.css';
     <div id="log-list"></div>
   </div>
 
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal settings-modal">
+    <div class="modal-header">
+      <h3>Settings</h3>
+      <button id="close-settings" class="modal-close">×</button>
+    </div>
+    
+    <div class="settings-modal-body">
+      <!-- About This Experience (Critical Section) -->
+      <details class="settings-section" open>
+        <summary class="settings-section__header">About This Experience</summary>
+        <div class="settings-section__content">
+          <p class="settings-about__intro">
+            <strong>What is Neteru?</strong><br>
+            This is an artful, reflective experience inspired by Kemetic symbolism 
+            and modern sound practices. It is not a clinical or therapeutic tool.
+          </p>
+          <p class="settings-about__cultural">
+            <strong>Cultural Note</strong><br>
+            The Neteru were understood as expressions of natural and moral order — 
+            not "gods" in the modern sense. This app offers symbolic guidance, 
+            not historical authority.
+          </p>
+          <p class="settings-about__disclaimer">
+            <em>This is an artistic and reflective experience based on historical symbolism. 
+            It is not intended as medical or psychological treatment.</em>
+          </p>
+        </div>
+      </details>
+
+      <!-- Audio Settings -->
+      <details class="settings-section">
+        <summary class="settings-section__header">Audio</summary>
+        <div class="settings-section__content">
+          <label class="settings-toggle-row">
+            <span>Autoplay tone on Neter selection</span>
+            <input type="checkbox" id="settings-autoplay" class="toggle-switch" />
+          </label>
+        </div>
+      </details>
+
+      <!-- Display Settings -->
+      <details class="settings-section">
+        <summary class="settings-section__header">Display</summary>
+        <div class="settings-section__content">
+          <label class="settings-toggle-row">
+            <span>Reduce visual effects</span>
+            <input type="checkbox" id="settings-reduce-effects" class="toggle-switch" />
+          </label>
+          <label class="settings-toggle-row">
+            <span>Reduce motion</span>
+            <input type="checkbox" id="settings-reduce-motion" class="toggle-switch" />
+          </label>
+        </div>
+      </details>
+
+      <!-- Data & Privacy -->
+      <details class="settings-section">
+        <summary class="settings-section__header">Data & Privacy</summary>
+        <div class="settings-section__content">
+          <p class="settings-privacy-note">
+            Your data stays on your device. Nothing is sent to external servers.
+          </p>
+          <div class="settings-actions">
+            <button id="settings-export-journal" class="settings-action-btn">
+              📥 Export Journal
+            </button>
+            <button id="settings-clear-journal" class="settings-action-btn settings-action-btn--danger">
+              🗑️ Clear Journal Entries
+            </button>
+            <button id="settings-clear-practice" class="settings-action-btn settings-action-btn--danger">
+              🗑️ Clear Practice Log
+            </button>
+            <button id="settings-clear-data" class="settings-action-btn settings-action-btn--danger">
+              🗑️ Clear All Data
+            </button>
+          </div>
+        </div>
+      </details>
+    </div>
+  </div>
+
   <div id="backdrop" class="backdrop"></div>
 
   <!-- Side Panel -->
@@ -133,6 +215,11 @@ import '../styles/styles.css';
   <!-- Theme Toggle Button -->
   <button class="theme-toggle" id="theme-btn" aria-label="Toggle Light/Dark Mode">
     <span class="theme-icon" id="theme-icon">☀️</span>
+  </button>
+
+  <!-- Settings Toggle Button (top-right, opposite theme toggle) -->
+  <button class="settings-toggle" id="settings-btn" aria-label="Open Settings">
+    <span class="settings-icon">⚙️</span>
   </button>
 
   <!-- Journal Panel -->

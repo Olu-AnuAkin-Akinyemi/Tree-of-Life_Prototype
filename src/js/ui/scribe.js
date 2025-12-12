@@ -13,6 +13,7 @@ import { PAUTTI_NETERU, colorToHex, formatDuration, formatDate, createBadgeText 
 
 let scene, camera, renderer, ankh, particles, light, animationId;
 let isAudioPlaying = false;
+let isReducedEffects = false;
 
 // Interaction state
 let isDragging = false;
@@ -28,6 +29,21 @@ let raycaster, mouse;
  */
 export const setThreeAudioState = (playing) => {
   isAudioPlaying = playing;
+};
+
+/**
+ * Set reduced effects state - hides particles and freezes Ankh animation
+ * @param {boolean} reduced - Whether to reduce visual effects
+ */
+export const setThreeReducedEffects = (reduced) => {
+  isReducedEffects = reduced;
+  
+  // Hide/show particles
+  if (particles) {
+    particles.visible = !reduced;
+  }
+  
+  console.log('⚙️ Three.js reduced effects:', reduced);
 };
 
 /**
@@ -304,7 +320,11 @@ const animate = () => {
   const audioIntensity = isAudioPlaying ? 1.5 : 0.5;
   
   if (ankh) {
-    if (isDragging) {
+    // If reduced effects, just render still (no animation)
+    if (isReducedEffects && !isDragging) {
+      // Keep Ankh visible but frozen
+      ankh.scale.set(1, 1, 1);
+    } else if (isDragging) {
       // Apply drag physics with wobble
       ankh.rotation.y += ankhVelocity.x;
       ankh.rotation.x += ankhVelocity.y;
@@ -342,7 +362,8 @@ const animate = () => {
     }
   }
 
-  if (particles) {
+  // Skip particle animation if reduced effects
+  if (particles && !isReducedEffects) {
     // Faster rotation when audio playing
     const particleRotSpeed = isAudioPlaying ? 0.002 : 0.0008;
     particles.rotation.y += particleRotSpeed;

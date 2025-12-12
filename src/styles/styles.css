@@ -861,6 +861,108 @@ header {
   }
 }
 
+/**
+ * Section 7c: Settings Toggle Button
+ */
+.settings-toggle {
+  position: fixed;
+  top: 2rem;
+  right: 2rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-solid);
+  background-image: var(--glass-bg);
+  color: var(--accent);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: var(--glass-shadow);
+  z-index: 1000;
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  backdrop-filter: blur(var(--glass-blur));
+  overflow: hidden;
+}
+
+/* Glossy highlight for settings-toggle */
+.settings-toggle::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 40%;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.1) 100%
+  );
+  border-radius: 50% 50% 60% 60%;
+  pointer-events: none;
+}
+
+.settings-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+  display: block;
+  filter: drop-shadow(0 0 4px rgba(255, 215, 0, 0.35));
+  transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.settings-toggle:hover,
+.settings-toggle:focus-visible {
+  box-shadow: 0 0 0 6px rgba(255, 215, 0, 0.2), 
+              0 0 0 12px rgba(255, 215, 0, 0.1), 
+              0 8px 20px rgba(255, 215, 0, 0.25);
+  transform: scale(1.05);
+  outline: none;
+}
+
+.settings-toggle:hover .settings-icon {
+  transform: rotate(45deg);
+}
+
+.settings-toggle:active {
+  transform: scale(0.98);
+  box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.25), 
+              0 6px 16px rgba(255, 215, 0, 0.2);
+}
+
+.settings-toggle:active .settings-icon {
+  transform: rotate(90deg);
+}
+
+/* Mobile adjustments for settings toggle */
+@media (max-width: 768px) {
+  .settings-toggle {
+    width: 40px;
+    height: 40px;
+    top: 1rem;
+    right: 1rem;
+  }
+  
+  .settings-icon {
+    font-size: 1rem;
+  }
+}
+
+/* Extra small mobile for settings toggle */
+@media (max-width: 480px) {
+  .settings-toggle {
+    width: 42px;
+    height: 42px;
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+  
+  .settings-icon {
+    font-size: 1.1rem;
+  }
+}
+
 .journal-toggle:active {
   transform: translateY(-50%) scaleX(-1) translateX(-10px);
   box-shadow: 0 0 0 4px rgba(0, 191, 255, 0.3), 0 8px 24px rgba(0, 191, 255, 0.2);
@@ -1457,15 +1559,17 @@ h2 {
   transform: translate(-50%, -50%) scale(0.95);
   width: min(90vw, 480px);
   max-height: 80vh;
-  background: var(--surface-strong);
-  border: 1px solid var(--border-hover);
+  background: var(--glass-bg-solid);
+  background-image: var(--glass-bg);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 1.75rem;
   z-index: 1300;
   overflow: auto;
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--glass-shadow);
+  color: var(--text-main);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s;
@@ -1506,6 +1610,238 @@ h2 {
 
 .modal-close:hover {
   background: rgba(255, 215, 0, 0.1);
+}
+
+/**
+ * Settings Modal Styles
+ */
+.settings-modal {
+  max-width: 480px;
+}
+
+.settings-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+.settings-section {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .settings-section {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--glass-border);
+}
+
+.settings-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-main);
+  background: rgba(255, 215, 0, 0.08);
+  border-bottom: 1px solid transparent;
+  transition: background 0.2s, border-color 0.2s;
+  list-style: none;
+}
+
+.settings-section__header::-webkit-details-marker {
+  display: none;
+}
+
+.settings-section__header::after {
+  content: '▸';
+  font-size: 0.75rem;
+  opacity: 0.6;
+  transition: transform 0.2s;
+}
+
+.settings-section[open] .settings-section__header::after {
+  transform: rotate(90deg);
+}
+
+.settings-section__header:hover {
+  background: rgba(255, 215, 0, 0.15);
+}
+
+.settings-section[open] .settings-section__header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="dark"] .settings-section[open] .settings-section__header {
+  border-bottom-color: var(--glass-border);
+}
+
+.settings-section__content {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  color: var(--text-main);
+}
+
+/* About section styles */
+.settings-about__intro,
+.settings-about__cultural,
+.settings-about__disclaimer {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.settings-about__intro strong,
+.settings-about__cultural strong {
+  color: var(--accent);
+}
+
+.settings-about__disclaimer {
+  padding: 0.75rem;
+  background: rgba(255, 215, 0, 0.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.85rem;
+}
+
+/* Toggle row styles */
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.settings-toggle-row input[type="checkbox"] {
+  /* Hide native checkbox */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  width: 44px;
+  height: 24px;
+  background: rgba(120, 120, 128, 0.32);
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+  flex-shrink: 0;
+}
+
+.settings-toggle-row input[type="checkbox"]::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.settings-toggle-row input[type="checkbox"]:checked {
+  background: var(--accent);
+}
+
+.settings-toggle-row input[type="checkbox"]:checked::before {
+  transform: translateX(20px);
+}
+
+/* Slider row styles */
+.settings-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  font-size: 0.9rem;
+}
+
+.settings-slider-row span:first-child {
+  flex: 1;
+}
+
+.settings-slider-row input[type="range"] {
+  width: 100px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+#settings-fade-value {
+  min-width: 40px;
+  text-align: right;
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Privacy note */
+.settings-privacy-note {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* Action buttons */
+.settings-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.settings-action-btn {
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 215, 0, 0.12);
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: left;
+}
+
+[data-theme="dark"] .settings-action-btn {
+  border-color: var(--glass-border);
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.settings-action-btn:hover {
+  background: rgba(255, 215, 0, 0.2);
+  border-color: var(--accent);
+}
+
+.settings-action-btn--danger {
+  background: rgba(255, 80, 80, 0.1);
+  border-color: rgba(255, 80, 80, 0.3);
+}
+
+.settings-action-btn--danger:hover {
+  background: rgba(255, 80, 80, 0.2);
+  border-color: rgba(255, 80, 80, 0.5);
+}
+
+/* Mobile adjustments for settings modal */
+@media (max-width: 768px) {
+  .settings-modal {
+    width: 95vw;
+    max-width: none;
+  }
+  
+  .settings-modal-body {
+    max-height: 70vh;
+  }
 }
 
 .backdrop {
@@ -2317,4 +2653,36 @@ button {
 
 .nav-arrow-btn:active {
   transform: scale(0.95);
+}
+
+/**
+ * Accessibility: Reduce Motion
+ * Applied via settings or user preference
+ */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* Also respect system preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/**
+ * Accessibility: Reduce Effects
+ * Simplifies visual complexity for low-power devices
+ * Three.js particles and animation are handled in scribe.js
+ */
+.reduce-effects .starfield {
+  display: none;
 }

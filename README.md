@@ -1,4 +1,4 @@
-# 🌳 Pautti Neteru - Tree of Life
+# 🌳 Neteru: Tree of Life
 
 > *A sacred journey through sound, frequency, and ancient wisdom*
 
@@ -24,6 +24,10 @@
   
   <h3>Welcome Screen</h3>
   <img src="public/img/screenshots/cover.png" width="600" alt="Welcome Screen" />
+
+  <br/><br/>
+  <h3>Theme Toggle</h3>
+  <img src="public/img/screenshots/theme_toggle_mobile_1765167169854.webp" width="600" alt="Theme Toggle" />
 </div>
 
 ---
@@ -192,20 +196,21 @@ npm run preview
 
 ## 🎵 Sacred Frequencies
 
-### The 10 Neteru (Divine Principles)
+### The 11 Neteru (Divine Principles)
 
-| Sphere | Neter | Frequency | Chakra | Element |
-|--------|-------|-----------|--------|---------|
-| 0 | Amun-Nun | 432 Hz | Crown + Beyond | Spirit |
-| 1 | Ausar | 396 Hz | Root | Earth |
-| 2 | Auset | 417 Hz | Sacral | Water |
-| 3 | Heru | 528 Hz | Solar Plexus | Fire |
-| 4 | Maat | 639 Hz | Heart | Air |
-| 5 | Tehuti | 741 Hz | Throat | Ether |
-| 6 | Sekhmet | 852 Hz | Third Eye | Light |
-| 7 | Het-Heru | 963 Hz | Crown | Cosmic |
-| 8 | Anpu | 174 Hz | Root | Foundation |
-| 9 | Geb | 285 Hz | Root + Sacral | Grounding |
+| Sphere | Neter | Title | Frequency | Chakra |
+|--------|-------|-------|-----------|--------|
+| 0 | Amun-Nun | The Hidden One | 432 Hz | Crown + Beyond |
+| 1 | Ra-Atum | The Self-Created | 396 Hz | Crown |
+| 2 | Tehuti | Divine Wisdom | 417 Hz | Third Eye |
+| 3 | Seker | The Light in Darkness | 528 Hz | Throat |
+| 4 | Maat | Truth & Justice | 639 Hz | Heart |
+| 5 | Heru-Khuti | Karma's Guardian | 741 Hz | Solar Plexus |
+| 6 | Heru | The Will | 852 Hz | Solar Plexus |
+| 7 | Het-Heru | Joy & Emotion | 963 Hz | Sacral |
+| 8 | Aset | The Healer | 174 Hz | Throat + Heart |
+| 9 | Asar | Resurrection | 285 Hz | Root + Heart |
+| 10 | Geb | Earth Foundation | 111 Hz | Root |
 
 ### Audio Behavior
 - **Play**: Smooth fade-in (0.5s) with visual response

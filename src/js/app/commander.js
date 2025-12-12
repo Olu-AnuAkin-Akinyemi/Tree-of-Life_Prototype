@@ -17,6 +17,15 @@ import {
 } from '../core/pure.js';
 
 import {
+  loadSettings,
+  updateSetting,
+  getSetting,
+  applyAllSettings,
+  applyReduceMotion,
+  applyReduceEffects
+} from '../core/settings.js';
+
+import {
   ensureAudioContext,
   playFrequency,
   stopSound,
@@ -51,7 +60,8 @@ import {
   openSidePanel,
   closeSidePanel,
   isSidePanelOpen,
-  setThreeAudioState
+  setThreeAudioState,
+  setThreeReducedEffects
 } from '../ui/scribe.js';
 
 // ============================================================================
@@ -90,19 +100,46 @@ export const selectNeter = async (neterId) => {
     sceneController.updateNeterVisuals(state.currentNeter);
   }
   
-  // Gracefully transition audio if playing
-  if (wasPlaying) {
+  // Handle audio based on state and autoplay setting
+  const autoplayEnabled = getSetting('autoplay');
+  
+  if (wasPlaying && autoplayEnabled) {
+    // Autoplay ON: Transition to new frequency smoothly
     try {
-      console.log('🎵 Starting frequency transition to:', state.currentNeter.frequency);
+      console.log('🎵 Autoplay ON - transitioning to:', state.currentNeter.frequency);
       await transitionFrequency(state.currentNeter.frequency);
       console.log('✅ Successfully transitioned to new frequency:', state.currentNeter.frequency);
     } catch (err) {
       console.error('❌ Failed to transition frequency:', err);
-      console.error('Error details:', err.message, err.stack);
-    } finally {
-      console.log('🎼 Audio transition attempt completed for:', state.currentNeter.name);
+    }
+  } else if (wasPlaying && !autoplayEnabled) {
+    // Autoplay OFF: Stop audio when navigating (user has manual control)
+    console.log('🔇 Autoplay OFF - stopping audio on navigation');
+    await stopSound();
+    state = {
+      ...state,
+      isPlaying: false,
+      sessionStart: null
+    };
+    updatePlayButton(false);
+    setThreeAudioState(false);
+  } else if (!wasPlaying && autoplayEnabled) {
+    // Autoplay ON + not playing: Auto-start the new frequency
+    console.log('🔊 Autoplay ON - starting frequency:', state.currentNeter.frequency);
+    try {
+      const timestamp = await playFrequency(state.currentNeter.frequency);
+      state = {
+        ...state,
+        sessionStart: timestamp,
+        isPlaying: true
+      };
+      updatePlayButton(true);
+      setThreeAudioState(true);
+    } catch (err) {
+      console.error('❌ Failed to auto-start audio:', err);
     }
   }
+  // else: not playing + autoplay OFF = do nothing (user has manual control)
 };
 
 // ============================================================================
@@ -753,6 +790,7 @@ export const handleCloseAllModals = () => {
   
   closeModal('journal');
   closeModal('log');
+  closeModal('settings');
   closeSidePanel();
 };
 
@@ -865,6 +903,350 @@ export const wireUpEvents = () => {
   const closeLogBtn = document.getElementById('close-log');
   if (closeLogBtn) {
     closeLogBtn.addEventListener('click', handleCloseLog);
+  }
+
+  // Settings button handlers
+  const settingsBtn = document.getElementById('settings-btn');
+  const settingsModal = document.getElementById('settings-modal');
+  const closeSettingsBtn = document.getElementById('close-settings');
+  const modalBackdropSettings = document.getElementById('backdrop');
+
+  // Settings form elements
+  const autoplayCheckbox = document.getElementById('settings-autoplay');
+  const reduceEffectsCheckbox = document.getElementById('settings-reduce-effects');
+  const reduceMotionCheckbox = document.getElementById('settings-reduce-motion');
+
+  /**
+   * Load saved settings into modal form elements
+   */
+  const loadSettingsIntoModal = () => {
+    const settings = loadSettings();
+    
+    if (autoplayCheckbox) autoplayCheckbox.checked = settings.autoplay;
+    if (reduceEffectsCheckbox) reduceEffectsCheckbox.checked = settings.reduceEffects;
+    if (reduceMotionCheckbox) reduceMotionCheckbox.checked = settings.reduceMotion;
+    
+    console.log('⚙️ Settings loaded into modal:', settings);
+  };
+
+  if (settingsBtn && settingsModal) {
+    settingsBtn.addEventListener('click', () => {
+      // Load saved settings into form when modal opens
+      loadSettingsIntoModal();
+      settingsModal.classList.add('visible');
+      if (modalBackdropSettings) modalBackdropSettings.classList.add('visible');
+      console.log('⚙️ Settings modal opened');
+    });
+    console.log('✓ Settings button');
+  }
+
+  // Exclusive accordion behavior - only one section open at a time
+  const settingsSections = settingsModal?.querySelectorAll('.settings-section');
+  if (settingsSections) {
+    settingsSections.forEach(section => {
+      section.addEventListener('toggle', (e) => {
+        if (e.target.open) {
+          // Close all other sections
+          settingsSections.forEach(other => {
+            if (other !== e.target && other.open) {
+              other.open = false;
+            }
+          });
+        }
+      });
+    });
+  }
+
+  if (closeSettingsBtn) {
+    closeSettingsBtn.addEventListener('click', () => {
+      settingsModal.classList.remove('visible');
+      if (modalBackdropSettings) modalBackdropSettings.classList.remove('visible');
+      console.log('⚙️ Settings modal closed');
+    });
+  }
+
+  // Autoplay toggle - save on change
+  if (autoplayCheckbox) {
+    autoplayCheckbox.addEventListener('change', (e) => {
+      updateSetting('autoplay', e.target.checked);
+    });
+  }
+
+  // Reduce visual effects toggle - save and apply immediately
+  if (reduceEffectsCheckbox) {
+    reduceEffectsCheckbox.addEventListener('change', (e) => {
+      updateSetting('reduceEffects', e.target.checked);
+      applyReduceEffects(e.target.checked);
+      setThreeReducedEffects(e.target.checked);
+    });
+  }
+
+  // Reduce motion toggle - save and apply immediately
+  if (reduceMotionCheckbox) {
+    reduceMotionCheckbox.addEventListener('change', (e) => {
+      updateSetting('reduceMotion', e.target.checked);
+      applyReduceMotion(e.target.checked);
+    });
+  }
+
+  // Export journal button - opens printable HTML for PDF export
+  const exportBtn = document.getElementById('settings-export-journal');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const entries = JSON.parse(localStorage.getItem('kemetic_journals') || '[]');
+      
+      if (entries.length === 0) {
+        alert('No journal entries to export.');
+        return;
+      }
+      
+      // Format entries for display
+      const formatDate = (dateStr) => {
+        try {
+          return new Date(dateStr).toLocaleString();
+        } catch {
+          return dateStr;
+        }
+      };
+      
+      const entriesHtml = entries.map(entry => `
+        <div class="entry">
+          <div class="entry-header">
+            <span class="entry-type">${entry.type === 'audio' ? '🎤 Voice' : '✍️ Written'}</span>
+            <span class="entry-neter">${entry.neterName || 'General'}</span>
+            <span class="entry-date">${formatDate(entry.date)}</span>
+          </div>
+          <div class="entry-text">${entry.text}</div>
+        </div>
+      `).reverse().join('');
+      
+      // Create styled HTML document
+      const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Neteru Journal Export - ${new Date().toLocaleDateString()}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Georgia', serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem;
+      color: #1a1a2e;
+      line-height: 1.6;
+    }
+    h1 {
+      text-align: center;
+      color: #b8860b;
+      margin-bottom: 0.5rem;
+      font-size: 2rem;
+    }
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+    .entry {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      page-break-inside: avoid;
+    }
+    .entry-header {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.85rem;
+      color: #666;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.5rem;
+    }
+    .entry-neter {
+      color: #b8860b;
+      font-weight: bold;
+    }
+    .entry-text {
+      white-space: pre-wrap;
+      font-size: 1rem;
+    }
+    .no-print { margin-top: 2rem; text-align: center; }
+    .no-print button {
+      background: #b8860b;
+      color: white;
+      border: none;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      margin: 0 0.5rem;
+    }
+    .no-print button:hover { background: #9a7209; }
+    @media print {
+      .no-print { display: none; }
+      body { padding: 1rem; }
+    }
+    @page {
+      size: auto;
+      margin: 10mm;
+    }
+  </style>
+</head>
+<body>
+  <h1>Neteru Journal</h1>
+  <p class="subtitle">Exported on ${new Date().toLocaleString()} • ${entries.length} entries</p>
+  ${entriesHtml}
+  <div class="no-print">
+    <p style="font-size: 0.85rem; color: #888; margin-bottom: 1rem;">
+      💡 Tip: In the print dialog, uncheck "Headers and footers" to remove URL/date from PDF
+    </p>
+    <button onclick="window.print()">📄 Save as PDF</button>
+    <button onclick="window.close()">✕ Close</button>
+  </div>
+</body>
+</html>`;
+      
+      // Create Blob URL for cleaner print (not about:blank)
+      const blob = new Blob([html], { type: 'text/html' });
+      const blobUrl = URL.createObjectURL(blob);
+      const printWindow = window.open(blobUrl, '_blank');
+      if (printWindow) {
+        console.log('📥 Journal export opened for PDF export');
+        // Clean up blob URL after window closes
+        printWindow.onafterprint = () => URL.revokeObjectURL(blobUrl);
+      } else {
+        URL.revokeObjectURL(blobUrl);
+        alert('Please allow popups to export your journal.');
+      }
+    });
+  }
+
+  // Clear journal entries button - two-click confirmation
+  const clearJournalBtn = document.getElementById('settings-clear-journal');
+  let clearJournalConfirmPending = false;
+  
+  if (clearJournalBtn) {
+    clearJournalBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!clearJournalConfirmPending) {
+        clearJournalConfirmPending = true;
+        clearJournalBtn.innerHTML = '⚠️ Click to confirm';
+        clearJournalBtn.style.background = 'rgba(255, 50, 50, 0.3)';
+        clearJournalBtn.style.borderColor = 'rgba(255, 50, 50, 0.6)';
+        
+        setTimeout(() => {
+          if (clearJournalConfirmPending) {
+            clearJournalConfirmPending = false;
+            clearJournalBtn.innerHTML = '🗑️ Clear Journal Entries';
+            clearJournalBtn.style.background = '';
+            clearJournalBtn.style.borderColor = '';
+          }
+        }, 3000);
+      } else {
+        console.log('🗑️ Clearing journal entries');
+        localStorage.removeItem('kemetic_journals');
+        clearJournalConfirmPending = false;
+        clearJournalBtn.innerHTML = '✓ Journal cleared';
+        clearJournalBtn.style.background = 'rgba(0, 200, 100, 0.2)';
+        clearJournalBtn.style.borderColor = 'rgba(0, 200, 100, 0.4)';
+        renderJournalEntries([]);
+        setTimeout(() => {
+          clearJournalBtn.innerHTML = '🗑️ Clear Journal Entries';
+          clearJournalBtn.style.background = '';
+          clearJournalBtn.style.borderColor = '';
+        }, 1500);
+      }
+    });
+  }
+
+  // Clear practice log button - two-click confirmation
+  const clearPracticeBtn = document.getElementById('settings-clear-practice');
+  let clearPracticeConfirmPending = false;
+  
+  if (clearPracticeBtn) {
+    clearPracticeBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!clearPracticeConfirmPending) {
+        clearPracticeConfirmPending = true;
+        clearPracticeBtn.innerHTML = '⚠️ Click to confirm';
+        clearPracticeBtn.style.background = 'rgba(255, 50, 50, 0.3)';
+        clearPracticeBtn.style.borderColor = 'rgba(255, 50, 50, 0.6)';
+        
+        setTimeout(() => {
+          if (clearPracticeConfirmPending) {
+            clearPracticeConfirmPending = false;
+            clearPracticeBtn.innerHTML = '🗑️ Clear Practice Log';
+            clearPracticeBtn.style.background = '';
+            clearPracticeBtn.style.borderColor = '';
+          }
+        }, 3000);
+      } else {
+        console.log('🗑️ Clearing practice log');
+        localStorage.removeItem('kemetic_practices');
+        clearPracticeConfirmPending = false;
+        clearPracticeBtn.innerHTML = '✓ Practice log cleared';
+        clearPracticeBtn.style.background = 'rgba(0, 200, 100, 0.2)';
+        clearPracticeBtn.style.borderColor = 'rgba(0, 200, 100, 0.4)';
+        renderSessionLog([]);
+        setTimeout(() => {
+          clearPracticeBtn.innerHTML = '🗑️ Clear Practice Log';
+          clearPracticeBtn.style.background = '';
+          clearPracticeBtn.style.borderColor = '';
+        }, 1500);
+      }
+    });
+  }
+
+  // Clear all data button - uses two-click confirmation (same pattern as journal delete)
+  const clearDataBtn = document.getElementById('settings-clear-data');
+  let clearDataConfirmPending = false;
+  
+  if (clearDataBtn) {
+    clearDataBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (!clearDataConfirmPending) {
+        // First click - show confirmation state
+        clearDataConfirmPending = true;
+        clearDataBtn.innerHTML = '⚠️ Click again to confirm deletion';
+        clearDataBtn.style.background = 'rgba(255, 50, 50, 0.3)';
+        clearDataBtn.style.borderColor = 'rgba(255, 50, 50, 0.6)';
+        
+        // Reset after 3 seconds if not confirmed
+        setTimeout(() => {
+          if (clearDataConfirmPending) {
+            clearDataConfirmPending = false;
+            clearDataBtn.innerHTML = '🗑️ Clear All Data';
+            clearDataBtn.style.background = '';
+            clearDataBtn.style.borderColor = '';
+          }
+        }, 3000);
+      } else {
+        // Second click - actually clear data
+        console.log('🗑️ Confirmed - clearing all data');
+        localStorage.removeItem('kemetic_journals');
+        localStorage.removeItem('kemetic_practices');
+        localStorage.removeItem('kemetic_last_neter');
+        localStorage.removeItem('neteru-settings-v1');
+        localStorage.removeItem('tol_hasVisited');
+        localStorage.removeItem('tol_theme');
+        localStorage.removeItem('tol_volume');
+        window.location.reload();
+      }
+    });
   }
 
   // Save journal button
@@ -1085,6 +1467,7 @@ export const wireUpEvents = () => {
       }
       closeModal('journal');
       closeModal('log');
+      closeModal('settings');
       // Also close entry detail modal if open
       const entryModal = document.getElementById('entry-detail-modal');
       if (entryModal) entryModal.remove();
@@ -1109,6 +1492,9 @@ export const wireUpEvents = () => {
  */
 export const init = () => {
   console.log('🌟 Initializing Neteru...');
+
+  // Apply saved settings immediately (reduce motion, reduce effects)
+  applyAllSettings();
 
   // Initialize audio context without blocking
   ensureAudioContext().catch(() => {
@@ -1167,6 +1553,11 @@ export const init = () => {
         console.info('Running without THREE.js visualization');
       } else {
         console.log('✅ THREE.js scene initialized');
+        // Apply saved reduce effects setting to Three.js
+        const savedSettings = loadSettings();
+        if (savedSettings.reduceEffects) {
+          setThreeReducedEffects(true);
+        }
       }
     } else {
       console.error('❌ THREE.js container not found - #three-mount missing!');
