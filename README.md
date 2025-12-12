@@ -2,9 +2,22 @@
 
 > *A sacred journey through sound, frequency, and ancient wisdom*
 
-**Pautti Neteru** is a spiritual wellness platform rooted in the ancient Kemetic (Egyptian) Tree of Life system. Through sacred geometry visualization, frequency-based meditation tones, and reflective journaling, we offer a digital sanctuary for self-discovery, healing, and spiritual growth.
+**Neteru: Tree of Life** is an artful, reflective experience inspired by the ancient Kemetic Tree of Life system. Through sacred geometry visualization, frequency-based meditation tones, and reflective journaling, we offer a digital sanctuary for self-discovery and symbolic exploration.
 
-**Mission**: To bridge timeless wisdom with modern technology, creating accessible tools that empower individuals on their path to inner peace and self-understanding.
+**Mission**: To bridge timeless wisdom with modern technology, creating accessible art tools that empower individuals on their path to inner peace and self-understanding.
+
+---
+
+### About This Experience
+
+**What is Neteru?**
+This is an artful, reflective experience inspired by Kemetic symbolism and modern sound practices. It is **not** a clinical or therapeutic tool.
+
+**Cultural Note**
+The Neteru were understood as expressions of natural and moral order — not "gods" in the modern sense. This work offers symbolic guidance, not historical authority.
+
+> [!NOTE]
+> *Disclaimer: This is an artistic and reflective experience based on historical symbolism. It is not intended as medical or psychological treatment.*
 
 ---
 
@@ -34,11 +47,12 @@
 
 ## ✨ Core Features
 
-- **🎵 Sacred Frequency Tones**: 10 healing frequencies aligned with the Kemetic Tree of Life spheres (174-963 Hz)
+- **🎵 Sacred Frequency Tones**: 11 healing frequencies aligned with the Kemetic Tree of Life spheres (111-963 Hz)
 - **🌌 3D Sacred Geometry**: Interactive Ankh visualization with audio-reactive particle effects (THREE.js)
-- **📖 Voice-to-Text Journaling**: Record reflections via browser speech recognition, edit, and save
-- **📊 Practice Tracking**: Session logs with duration and frequency history
-- **🌙 Light/Dark Mode**: Adaptive theme for meditation at any time
+- **📖 Voice-to-Text Journaling**: Record reflections, edit, and **Export as PDF**
+- **⚙️ Customizable Settings**: Reduced Motion, Visual Effects toggle, and Autoplay preferences
+- **📊 Granular Data Control**: Clear specific journals or practice logs without losing everything
+- **🌙 Light/Dark Mode**: Adaptive theme for reflection at any time
 - **📱 Responsive Design**: Seamless experience on desktop and mobile
 - **🎨 Kemetic Aesthetics**: Authentic ancient Egyptian visual language with modern UI/UX
 
@@ -345,8 +359,10 @@ npx wrangler pages publish dist
 
 | Key | Description | Format |
 |-----|-------------|--------|
-| `pautti-sessions` | Practice session logs | Array of session objects |
-| `pautti-journals` | Reflection entries | Array of journal objects |
+| `kemetic_practices` | Practice session logs | Array of session objects |
+| `kemetic_journals` | Reflection entries | Array of journal objects |
+| `kemetic_last_neter` | Last visited Neter ID | Number (0-10) |
+| `neteru-settings-v1` | User preferences | Object (autoplay, reduceMotion, etc) |
 | `tol_hasVisited` | First-visit flag | `"true"` / `null` |
 | `tol_theme` | Theme preference | `"light"` / `"dark"` |
 | `tol_volume` | Audio volume level | `0.0` - `1.0` |
