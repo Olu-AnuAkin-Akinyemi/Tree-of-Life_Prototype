@@ -2,13 +2,13 @@
  * INFRA/MESSENGER.JS
  * All side effects, I/O operations, and external communications.
  * Handles: Audio (Web Audio API), localStorage, async operations.
- * 
+ *
  * This module is IMPURE - it talks to the outside world.
  * Contains async/await where needed and proper error handling.
  */
 
-import { storageKeys, isValidFrequency } from '../core/pure.js';
-import { getSetting } from '../core/settings.js';
+import { storageKeys, isValidFrequency } from "../core/pure.js";
+import { getSetting } from "../core/settings.js";
 
 // ============================================================================
 // AUDIO ENGINE - Web Audio API
@@ -18,29 +18,66 @@ let audioContext = null;
 let gainNode = null;
 let oscillator = null;
 let isPlaying = false;
+let audioUnlocked = false;
+
+/**
+ * Synchronously initialize audio context (call from user gesture handler)
+ * This MUST be called synchronously within a click/tap handler for mobile compatibility
+ */
+const initAudioContextSync = () => {
+  if (audioContext) return;
+
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  audioContext = new AudioCtx();
+
+  gainNode = audioContext.createGain();
+  gainNode.gain.value = 0; // Start at 0 for fade in
+  gainNode.connect(audioContext.destination);
+
+  console.log("🔊 AudioContext created, state:", audioContext.state);
+};
+
+/**
+ * Unlock audio for iOS Safari - plays a silent buffer to enable audio playback
+ * This trick is required because iOS Safari requires audio to be "unlocked"
+ * by playing something within a user gesture
+ */
+const unlockAudioForMobile = () => {
+  if (audioUnlocked || !audioContext) return;
+
+  // Create and play a silent buffer to "unlock" audio on iOS
+  const silentBuffer = audioContext.createBuffer(1, 1, 22050);
+  const source = audioContext.createBufferSource();
+  source.buffer = silentBuffer;
+  source.connect(audioContext.destination);
+  source.start(0);
+
+  audioUnlocked = true;
+  console.log("🔓 Audio unlocked for mobile");
+};
 
 /**
  * Initialize or resume audio context
+ * For mobile compatibility, this should be called from a user gesture handler
  * @returns {Promise<void>}
  */
 export const ensureAudioContext = async () => {
-  if (!audioContext) {
-    const AudioCtx = window.AudioContext || window.webkitAudioContext;
-    audioContext = new AudioCtx();
-    
-    gainNode = audioContext.createGain();
-    gainNode.gain.value = 0; // Start at 0 for fade in
-    gainNode.connect(audioContext.destination);
-  }
-  
-  if (audioContext.state === 'suspended') {
+  // Step 1: Create context synchronously (critical for mobile)
+  initAudioContextSync();
+
+  // Step 2: Resume if suspended
+  if (audioContext.state === "suspended") {
     try {
+      // Resume must happen within user gesture on mobile
       await audioContext.resume();
+      console.log("▶️ AudioContext resumed, state:", audioContext.state);
     } catch (err) {
-      // Browser blocked autoplay - will resume on first user interaction
-      console.info('Audio context suspended, will resume on user interaction');
+      console.warn("Audio context resume failed:", err);
     }
   }
+
+  // Step 3: Unlock for iOS Safari
+  unlockAudioForMobile();
 };
 
 /**
@@ -52,30 +89,42 @@ export const playFrequency = async (frequency) => {
   if (!isValidFrequency(frequency)) {
     throw new Error(`Invalid frequency: ${frequency}`);
   }
-  
+
   await ensureAudioContext();
-  
+
+  // Debug: Log audio context state
+  console.log("📊 [playFrequency] AudioContext state:", audioContext.state);
+
   // Stop existing oscillator if playing
   if (oscillator) {
     await stopSound();
   }
-  
+
   oscillator = audioContext.createOscillator();
-  oscillator.type = 'sine'; // Pure sine wave for healing tones
+  oscillator.type = "sine"; // Pure sine wave for healing tones
   oscillator.frequency.value = frequency;
   oscillator.connect(gainNode);
   oscillator.start();
-  
+
   // Get stored volume (0-100) and convert to audio level (0-0.3)
   const storedVolume = getVolume();
   const targetVolume = (storedVolume / 100) * 0.3;
-  
+
   // Fade in using user setting
-  const fadeDuration = getSetting('fadeDuration') || 0.8;
+  const fadeDuration = getSetting("fadeDuration") || 0.8;
   const now = audioContext.currentTime;
   gainNode.gain.setValueAtTime(0, now);
   gainNode.gain.linearRampToValueAtTime(targetVolume, now + fadeDuration);
-  
+
+  // Debug: Log volume info
+  console.log("🔊 [playFrequency] Volume debug:", {
+    storedVolume,
+    targetVolume,
+    fadeDuration,
+    contextTime: now,
+    contextState: audioContext.state,
+  });
+
   isPlaying = true;
   return Date.now();
 };
@@ -89,58 +138,74 @@ export const transitionFrequency = async (newFrequency) => {
   if (!isValidFrequency(newFrequency)) {
     throw new Error(`Invalid frequency: ${newFrequency}`);
   }
-  
+
   if (!oscillator || !isPlaying) {
     // If not playing, just start normally
     return playFrequency(newFrequency);
   }
-  
+
   await ensureAudioContext();
-  
+
   const now = audioContext.currentTime;
   const crossfadeTime = 0.35; // 350ms fast but smooth crossfade
-  
-  console.log('🔄 Crossfading from', oscillator.frequency.value, 'Hz to', newFrequency, 'Hz');
-  
+
+  console.log(
+    "🔄 Crossfading from",
+    oscillator.frequency.value,
+    "Hz to",
+    newFrequency,
+    "Hz"
+  );
+
   // Store reference to old oscillator
   const oldOscillator = oscillator;
-  
+
   // Create new oscillator immediately
   oscillator = audioContext.createOscillator();
-  oscillator.type = 'sine';
+  oscillator.type = "sine";
   oscillator.frequency.value = newFrequency;
   oscillator.connect(gainNode);
   oscillator.start(now);
-  
+
   // Crossfade: fade out old gain, then fade in new
   const currentGain = gainNode.gain.value;
   const storedVolume = getVolume();
   const targetVolume = (storedVolume / 100) * 0.3;
+
+  // Debug: Log crossfade volume info
+  console.log("🔊 [transitionFrequency] Volume debug:", {
+    currentGain,
+    storedVolume,
+    targetVolume,
+    crossfadeTime,
+    contextState: audioContext.state,
+  });
+
   gainNode.gain.setValueAtTime(currentGain, now);
   gainNode.gain.linearRampToValueAtTime(0, now + crossfadeTime / 2);
   gainNode.gain.linearRampToValueAtTime(targetVolume, now + crossfadeTime);
-  
+
   // Stop old oscillator at the midpoint of crossfade
   try {
     oldOscillator.stop(now + crossfadeTime / 2);
   } catch (err) {
-    console.warn('Error stopping old oscillator:', err);
+    console.warn("Error stopping old oscillator:", err);
   }
-  
+
   // Clean up old oscillator after it stops
   setTimeout(() => {
     try {
       oldOscillator.disconnect();
-      console.log('✅ Old oscillator disconnected');
+      console.log("✅ Old oscillator disconnected");
     } catch (err) {
-      console.warn('Error disconnecting old oscillator:', err);
+      console.warn("Error disconnecting old oscillator:", err);
     }
   }, (crossfadeTime / 2) * 1000 + 100);
-  
+
   // Keep playing state true
   isPlaying = true;
-  
-  console.log('🎵 New oscillator playing at', newFrequency, 'Hz');
+
+  console.log("🎵 New oscillator playing at", newFrequency, "Hz");
 };
 
 /**
@@ -149,18 +214,18 @@ export const transitionFrequency = async (newFrequency) => {
  */
 export const stopSound = async () => {
   if (!oscillator || !isPlaying) return null;
-  
+
   try {
     const now = audioContext.currentTime;
-    const fadeTime = getSetting('fadeDuration') || 0.8; // Use user setting
-    
+    const fadeTime = getSetting("fadeDuration") || 0.8; // Use user setting
+
     // Fade out
     gainNode.gain.setValueAtTime(gainNode.gain.value, now);
     gainNode.gain.linearRampToValueAtTime(0, now + fadeTime);
-    
+
     // Stop oscillator after fade
-    await new Promise(resolve => setTimeout(resolve, fadeTime * 1000));
-    
+    await new Promise((resolve) => setTimeout(resolve, fadeTime * 1000));
+
     if (oscillator) {
       oscillator.stop();
       oscillator.disconnect();
@@ -168,11 +233,11 @@ export const stopSound = async () => {
     }
     isPlaying = false;
   } catch (err) {
-    console.warn('Error stopping oscillator:', err);
+    console.warn("Error stopping oscillator:", err);
     oscillator = null;
     isPlaying = false;
   }
-  
+
   return Date.now();
 };
 
@@ -182,21 +247,21 @@ export const stopSound = async () => {
  */
 export const setVolume = (volume) => {
   if (!gainNode) return;
-  
+
   // Convert 0-100 to 0-0.3 (gentle max volume for healing tones)
   const normalizedVolume = Math.max(0, Math.min(100, volume)) / 100;
   const audioVolume = normalizedVolume * 0.3;
-  
+
   // Smooth volume change
   const now = audioContext?.currentTime || 0;
   gainNode.gain.setValueAtTime(gainNode.gain.value, now);
   gainNode.gain.linearRampToValueAtTime(audioVolume, now + 0.1);
-  
+
   // Store in localStorage
   try {
-    localStorage.setItem('tol_volume', volume.toString());
+    localStorage.setItem("tol_volume", volume.toString());
   } catch (err) {
-    console.warn('Could not save volume:', err);
+    console.warn("Could not save volume:", err);
   }
 };
 
@@ -206,7 +271,7 @@ export const setVolume = (volume) => {
  */
 export const getVolume = () => {
   try {
-    const stored = localStorage.getItem('tol_volume');
+    const stored = localStorage.getItem("tol_volume");
     return stored ? parseInt(stored, 10) : 75;
   } catch (err) {
     return 75; // Default volume
@@ -223,7 +288,8 @@ export const getIsPlaying = () => isPlaying;
  * Get current audio context time for synchronization
  * @returns {number|null}
  */
-export const getAudioTime = () => audioContext ? audioContext.currentTime : null;
+export const getAudioTime = () =>
+  audioContext ? audioContext.currentTime : null;
 
 /**
  * Toggle mute state
@@ -280,12 +346,12 @@ export const logSession = (sessionData) => {
   const entry = {
     id: Date.now(),
     ...sessionData,
-    date: new Date().toISOString()
+    date: new Date().toISOString(),
   };
-  
+
   const updated = [entry, ...sessions].slice(0, 50); // Keep last 50
   safeWrite(storageKeys.sessions, updated);
-  
+
   return updated;
 };
 
@@ -299,12 +365,12 @@ export const saveJournalEntry = (journalData) => {
   const entry = {
     id: Date.now(),
     ...journalData,
-    date: new Date().toISOString()
+    date: new Date().toISOString(),
   };
-  
+
   const updated = [entry, ...journals];
   safeWrite(storageKeys.journals, updated);
-  
+
   return updated;
 };
 
@@ -328,9 +394,14 @@ export const deleteJournalEntry = (entryId) => {
   const journals = safeRead(storageKeys.journals);
   // Convert to number for consistent comparison (IDs are timestamps)
   const targetId = Number(entryId);
-  const updated = journals.filter(entry => entry.id !== targetId);
+  const updated = journals.filter((entry) => entry.id !== targetId);
   safeWrite(storageKeys.journals, updated);
-  console.log('🗑️ Journal entry deleted:', targetId, 'Entries remaining:', updated.length);
+  console.log(
+    "🗑️ Journal entry deleted:",
+    targetId,
+    "Entries remaining:",
+    updated.length
+  );
   return updated;
 };
 
@@ -342,7 +413,7 @@ export const saveLastNeter = (neterId) => {
   try {
     localStorage.setItem(storageKeys.lastNeter, neterId.toString());
   } catch (err) {
-    console.warn('Could not save last neter:', err);
+    console.warn("Could not save last neter:", err);
   }
 };
 
@@ -362,7 +433,7 @@ export const loadLastNeter = () => {
     }
     return null; // New user - no saved neter
   } catch (err) {
-    console.warn('Could not load last neter:', err);
+    console.warn("Could not load last neter:", err);
     return null;
   }
 };
