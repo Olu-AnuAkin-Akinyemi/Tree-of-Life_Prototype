@@ -50,4 +50,4 @@ temp/
 
 # Context files (AI/Copilot context)
 context/
-.github/
+.github/wrangler.toml.local
