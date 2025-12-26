@@ -1,17 +1,21 @@
 {
-  "name": "tree-of-life-prototype",
+  "name": "neteru-tree-of-life",
   "type": "module",
   "version": "1.0.0",
   "scripts": {
     "dev": "astro dev",
     "start": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "pages:dev": "wrangler pages dev ./dist"
   },
   "dependencies": {
     "astro": "^5.16.4",
     "gsap": "^3.12.5",
     "three": "^0.160.0"
   },
-  "description": "healing, kemet, tones"
+  "description": "healing, kemet, tones",
+  "devDependencies": {
+    "wrangler": "^4.54.0"
+  }
 }

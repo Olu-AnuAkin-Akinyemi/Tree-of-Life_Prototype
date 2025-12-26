@@ -1,387 +1,435 @@
 ---
 // src/pages/welcome.astro
 // Welcome/Landing Page - First-time visitor gateway
-import '../styles/styles.css';
+import "../styles/styles.css";
 ---
 
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pautti Neteru - Tree of Life</title>
-  <style>
-    /* Welcome page specific styles */
-    .welcome-container {
-      min-height: 100vh;
-      min-height: 100dvh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem;
-      position: relative;
-      z-index: 1;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#ffd700" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="Neteru" />
+    <meta
+      name="description"
+      content="Neteru — a digital sound-aid-tool for self growth. Journey through ancient Kemetic wisdom with sacred frequencies and meditation practices."
+    />
 
-    .welcome-card {
-      max-width: 600px;
-      width: 100%;
-      background: var(--glass-bg-solid);
-      background-image: var(--glass-bg);
-      backdrop-filter: blur(var(--glass-blur-intense));
-      -webkit-backdrop-filter: blur(var(--glass-blur-intense));
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 3rem 2.5rem;
-      box-shadow: var(--glass-shadow-elevated);
-      position: relative;
-      overflow: hidden;
-      animation: fadeSlideUp 0.8s ease-out 0.2s forwards;
-      opacity: 0;
-      transform: translateY(20px);
-    }
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Neteru - Tree of Life" />
+    <meta
+      property="og:description"
+      content="Neteru — a digital sound-aid-tool for self growth. Journey through ancient Kemetic wisdom with sacred frequencies and meditation practices."
+    />
+    <meta property="og:site_name" content="Neteru" />
 
-    @keyframes fadeSlideUp {
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Neteru - Tree of Life" />
+    <meta
+      name="twitter:description"
+      content="Neteru — a digital sound-aid-tool for self growth. Journey through ancient Kemetic wisdom with sacred frequencies and meditation practices."
+    />
 
-    @keyframes fadeSlideUpPartial {
-      to {
-        opacity: 0.8;
-        transform: translateY(0);
-      }
-    }
-
-    /* Glassmorphism effects */
-    .welcome-card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 150px;
-      background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.6) 0%,
-        rgba(255, 255, 255, 0.2) 50%,
-        transparent 100%
-      );
-      pointer-events: none;
-      border-radius: 24px 24px 0 0;
-      z-index: 0;
-    }
-
-    .welcome-card::after {
-      content: '';
-      position: absolute;
-      inset: -1px;
-      border-radius: 25px;
-      padding: 1px;
-      background: var(--glass-border-iridescent);
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
-      opacity: 0.7;
-      z-index: 0;
-    }
-
-    .welcome-content {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-    }
-
-    .welcome-logo {
-      font-size: clamp(2.5rem, 6vw, 4rem);
-      font-family: var(--font-main);
-      background: linear-gradient(135deg, #ffd700, #ffaa00, #ff8800, #ffaa00, #ffd700);
-      background-size: 200% 200%;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.5rem;
-      font-weight: 300;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      animation: fadeSlideUp 0.6s ease-out 0.5s forwards, shimmer 6s ease-in-out infinite 1.1s;
-      opacity: 0;
-      transform: translateY(10px);
-    }
-
-    @keyframes shimmer {
-      0%, 100% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-    }
-
-    .welcome-tagline {
-      font-size: 1.1rem;
-      color: var(--text-main);
-      margin-bottom: 2rem;
-      font-style: italic;
-      letter-spacing: 0.05em;
-      animation: fadeSlideUpPartial 0.6s ease-out 0.7s forwards;
-      opacity: 0;
-      transform: translateY(10px);
-    }
-
-    .welcome-description {
-      font-size: 1rem;
-      line-height: 1.7;
-      color: var(--text-muted);
-      margin-bottom: 2.5rem;
-      max-width: 480px;
-      margin-left: auto;
-      margin-right: auto;
-      animation: fadeSlideUp 0.6s ease-out 0.9s forwards;
-      opacity: 0;
-      transform: translateY(10px);
-    }
-
-    .welcome-features {
-      list-style: none;
-      margin-bottom: 2.5rem;
-      display: grid;
-      gap: 1rem;
-      animation: fadeSlideUp 0.6s ease-out 1.1s forwards;
-      opacity: 0;
-      transform: translateY(10px);
-    }
-
-    .feature-item {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1rem;
-      background: rgba(255, 215, 0, 0.05);
-      border: 1px solid rgba(255, 215, 0, 0.15);
-      border-radius: 12px;
-      transition: all 0.3s ease;
-    }
-
-    .feature-item:hover {
-      background: rgba(255, 215, 0, 0.1);
-      border-color: rgba(255, 215, 0, 0.3);
-      transform: translateX(4px);
-    }
-
-    .feature-icon {
-      font-size: 1.75rem;
-      flex-shrink: 0;
-      filter: drop-shadow(0 2px 6px rgba(255, 215, 0, 0.3));
-    }
-
-    .feature-text {
-      text-align: left;
-      font-size: 0.95rem;
-      color: var(--text-main);
-      line-height: 1.5;
-    }
-
-    .enter-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.75rem;
-      padding: 1rem 3rem;
-      font-size: 1.1rem;
-      font-family: var(--font-main);
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: var(--text-main);
-      background: var(--glass-bg-solid);
-      background-image: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 999px;
-      cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      box-shadow: var(--glass-shadow);
-      backdrop-filter: blur(var(--glass-blur));
-      -webkit-backdrop-filter: blur(var(--glass-blur));
-      position: relative;
-      overflow: hidden;
-      animation: fadeSlideUp 0.6s ease-out 1.3s forwards;
-      opacity: 0;
-      transform: translateY(10px);
-    }
-
-    .enter-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--glass-shadow-elevated);
-      border-color: var(--accent);
-      background: rgba(255, 215, 0, 0.2);
-    }
-
-    :global([data-theme="dark"]) .enter-btn {
-      background: rgba(30, 30, 40, 0.7);
-      background-image: none;
-    }
-
-    :global([data-theme="dark"]) .enter-btn:hover {
-      background: rgba(255, 215, 0, 0.25);
-      color: rgba(255, 255, 255, 0.95);
-    }
-
-    .enter-btn:active {
-      transform: translateY(0) scale(0.98);
-    }
-
-    .enter-icon {
-      font-size: 1.25rem;
-      transition: transform 0.3s ease;
-    }
-
-    .enter-btn:hover .enter-icon {
-      transform: translateX(4px);
-    }
-
-    /* Exit animation class */
-    .welcome-card.exiting {
-      animation: fadeSlideOut 0.5s ease-in forwards;
-    }
-
-    @keyframes fadeSlideOut {
-      to {
-        opacity: 0;
-        transform: translateY(-20px);
-      }
-    }
-
-    @media (max-width: 768px) {
+    <title>Neteru - Tree of Life</title>
+    <style>
+      /* Welcome page specific styles */
       .welcome-container {
-        padding: 1rem;
+        min-height: 100vh;
+        min-height: 100dvh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+        position: relative;
+        z-index: 1;
       }
 
       .welcome-card {
-        padding: 2rem 1.5rem;
+        max-width: 600px;
+        width: 100%;
+        background: var(--glass-bg-solid);
+        background-image: var(--glass-bg);
+        backdrop-filter: blur(var(--glass-blur-intense));
+        -webkit-backdrop-filter: blur(var(--glass-blur-intense));
+        border: 1px solid var(--glass-border);
+        border-radius: 24px;
+        padding: 3rem 2.5rem;
+        box-shadow: var(--glass-shadow-elevated);
+        position: relative;
+        overflow: hidden;
+        animation: fadeSlideUp 0.8s ease-out 0.2s forwards;
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      @keyframes fadeSlideUp {
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes fadeSlideUpPartial {
+        to {
+          opacity: 0.8;
+          transform: translateY(0);
+        }
+      }
+
+      /* Glassmorphism effects */
+      .welcome-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 150px;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.6) 0%,
+          rgba(255, 255, 255, 0.2) 50%,
+          transparent 100%
+        );
+        pointer-events: none;
+        border-radius: 24px 24px 0 0;
+        z-index: 0;
+      }
+
+      .welcome-card::after {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        border-radius: 25px;
+        padding: 1px;
+        background: var(--glass-border-iridescent);
+        -webkit-mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        mask:
+          linear-gradient(#fff 0 0) content-box,
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+        opacity: 0.7;
+        z-index: 0;
+      }
+
+      .welcome-content {
+        position: relative;
+        z-index: 1;
+        text-align: center;
       }
 
       .welcome-logo {
-        font-size: 2rem;
+        font-size: clamp(2.5rem, 6vw, 4rem);
+        font-family: var(--font-main);
+        background: linear-gradient(
+          135deg,
+          #ffd700,
+          #ffaa00,
+          #ff8800,
+          #ffaa00,
+          #ffd700
+        );
+        background-size: 200% 200%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin-bottom: 0.5rem;
+        font-weight: 300;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        animation:
+          fadeSlideUp 0.6s ease-out 0.5s forwards,
+          shimmer 6s ease-in-out infinite 1.1s;
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      @keyframes shimmer {
+        0%,
+        100% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
       }
 
       .welcome-tagline {
-        font-size: 0.95rem;
+        font-size: 1.1rem;
+        color: var(--text-main);
+        margin-bottom: 2rem;
+        font-style: italic;
+        letter-spacing: 0.05em;
+        animation: fadeSlideUpPartial 0.6s ease-out 0.7s forwards;
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      .welcome-description {
+        font-size: 1rem;
+        line-height: 1.7;
+        color: var(--text-muted);
+        margin-bottom: 2.5rem;
+        max-width: 480px;
+        margin-left: auto;
+        margin-right: auto;
+        animation: fadeSlideUp 0.6s ease-out 0.9s forwards;
+        opacity: 0;
+        transform: translateY(10px);
       }
 
       .welcome-features {
-        gap: 0.75rem;
+        list-style: none;
+        margin-bottom: 2.5rem;
+        display: grid;
+        gap: 1rem;
+        animation: fadeSlideUp 0.6s ease-out 1.1s forwards;
+        opacity: 0;
+        transform: translateY(10px);
       }
 
       .feature-item {
-        padding: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background: rgba(255, 215, 0, 0.05);
+        border: 1px solid rgba(255, 215, 0, 0.15);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+      }
+
+      .feature-item:hover {
+        background: rgba(255, 215, 0, 0.1);
+        border-color: rgba(255, 215, 0, 0.3);
+        transform: translateX(4px);
+      }
+
+      .feature-icon {
+        font-size: 1.75rem;
+        flex-shrink: 0;
+        filter: drop-shadow(0 2px 6px rgba(255, 215, 0, 0.3));
+      }
+
+      .feature-text {
+        text-align: left;
+        font-size: 0.95rem;
+        color: var(--text-main);
+        line-height: 1.5;
       }
 
       .enter-btn {
-        padding: 0.875rem 2rem;
-        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 1rem 3rem;
+        font-size: 1.1rem;
+        font-family: var(--font-main);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--text-main);
+        background: var(--glass-bg-solid);
+        background-image: var(--glass-bg);
+        border: 1px solid var(--glass-border);
+        border-radius: 999px;
+        cursor: pointer;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--glass-shadow);
+        backdrop-filter: blur(var(--glass-blur));
+        -webkit-backdrop-filter: blur(var(--glass-blur));
+        position: relative;
+        overflow: hidden;
+        animation: fadeSlideUp 0.6s ease-out 1.3s forwards;
+        opacity: 0;
+        transform: translateY(10px);
       }
-    }
 
-    /* Dark mode adjustments for welcome page */
-    :global([data-theme="dark"]) .welcome-card::before {
-      background: linear-gradient(
-        180deg,
-        rgba(255, 255, 255, 0.08) 0%,
-        rgba(255, 255, 255, 0.02) 50%,
-        transparent 100%
-      );
-    }
+      .enter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--glass-shadow-elevated);
+        border-color: var(--accent);
+        background: rgba(255, 215, 0, 0.2);
+      }
 
-    :global([data-theme="dark"]) .feature-item {
-      background: rgba(255, 215, 0, 0.08);
-      border-color: rgba(255, 215, 0, 0.2);
-    }
+      :global([data-theme="dark"]) .enter-btn {
+        background: rgba(30, 30, 40, 0.7);
+        background-image: none;
+      }
 
-    :global([data-theme="dark"]) .feature-item:hover {
-      background: rgba(255, 215, 0, 0.15);
-      border-color: rgba(255, 215, 0, 0.35);
-    }
-  </style>
-</head>
-<body>
+      :global([data-theme="dark"]) .enter-btn:hover {
+        background: rgba(255, 215, 0, 0.25);
+        color: rgba(255, 255, 255, 0.95);
+      }
 
-  <div class="aurora-container">
-    <div class="aurora-layer aurora-1"></div>
-    <div class="aurora-layer aurora-2"></div>
-    <div class="aurora-layer aurora-3"></div>
-  </div>
-  <div class="starfield"></div>
-  
-  <div class="welcome-container">
-    <div class="welcome-card">
-      <div class="welcome-content">
-        <h1 class="welcome-logo">Neteru</h1>
-        <p class="welcome-tagline">A digital sound-aid-tool for self growth</p>
-        
-       <!-- <p class="welcome-description">
+      .enter-btn:active {
+        transform: translateY(0) scale(0.98);
+      }
+
+      .enter-icon {
+        font-size: 1.25rem;
+        transition: transform 0.3s ease;
+      }
+
+      .enter-btn:hover .enter-icon {
+        transform: translateX(4px);
+      }
+
+      /* Exit animation class */
+      .welcome-card.exiting {
+        animation: fadeSlideOut 0.5s ease-in forwards;
+      }
+
+      @keyframes fadeSlideOut {
+        to {
+          opacity: 0;
+          transform: translateY(-20px);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .welcome-container {
+          padding: 1rem;
+        }
+
+        .welcome-card {
+          padding: 2rem 1.5rem;
+        }
+
+        .welcome-logo {
+          font-size: 2rem;
+        }
+
+        .welcome-tagline {
+          font-size: 0.95rem;
+        }
+
+        .welcome-features {
+          gap: 0.75rem;
+        }
+
+        .feature-item {
+          padding: 0.75rem;
+        }
+
+        .enter-btn {
+          padding: 0.875rem 2rem;
+          font-size: 1rem;
+        }
+      }
+
+      /* Dark mode adjustments for welcome page */
+      :global([data-theme="dark"]) .welcome-card::before {
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.08) 0%,
+          rgba(255, 255, 255, 0.02) 50%,
+          transparent 100%
+        );
+      }
+
+      :global([data-theme="dark"]) .feature-item {
+        background: rgba(255, 215, 0, 0.08);
+        border-color: rgba(255, 215, 0, 0.2);
+      }
+
+      :global([data-theme="dark"]) .feature-item:hover {
+        background: rgba(255, 215, 0, 0.15);
+        border-color: rgba(255, 215, 0, 0.35);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="aurora-container">
+      <div class="aurora-layer aurora-1"></div>
+      <div class="aurora-layer aurora-2"></div>
+      <div class="aurora-layer aurora-3"></div>
+    </div>
+    <div class="starfield"></div>
+
+    <div class="welcome-container">
+      <div class="welcome-card">
+        <div class="welcome-content">
+          <h1 class="welcome-logo">Neteru</h1>
+          <p class="welcome-tagline">
+            A digital sound-aid-tool for self growth
+          </p>
+
+          <!-- <p class="welcome-description">
           Journey through the Kemetic Tree of Life. Experience ancient wisdom through sacred frequencies, 
           meditation tones, and reflective journaling.
         </p> -->
 
-        <button class="enter-btn" id="enter-btn">
-          <span>Enter</span>
-          <span class="enter-icon">→</span>
-        </button>
+          <button class="enter-btn" id="enter-btn">
+            <span>Enter</span>
+            <span class="enter-icon">→</span>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- Theme Toggle Button -->
-  <button class="theme-toggle" id="theme-btn" aria-label="Toggle Light/Dark Mode">
-    <span class="theme-icon" id="theme-icon">☀️</span>
-  </button>
+    <!-- Theme Toggle Button -->
+    <button
+      class="theme-toggle"
+      id="theme-btn"
+      aria-label="Toggle Light/Dark Mode"
+    >
+      <span class="theme-icon" id="theme-icon">☀️</span>
+    </button>
 
-  <script is:inline>
-    // Theme Toggle Logic - runs immediately to prevent flash
-    (function initTheme() {
-      const html = document.documentElement;
-      const savedTheme = localStorage.getItem('tol_theme') || 'light';
-      html.setAttribute('data-theme', savedTheme);
-      
-      document.addEventListener('DOMContentLoaded', () => {
-        const themeBtn = document.getElementById('theme-btn');
-        const themeIcon = document.getElementById('theme-icon');
-        
-        if (themeIcon) {
-          themeIcon.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
-        }
-        
-        if (themeBtn && themeIcon) {
-          themeBtn.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('tol_theme', newTheme);
-            themeIcon.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+    <script is:inline>
+      // Theme Toggle Logic - runs immediately to prevent flash
+      (function initTheme() {
+        const html = document.documentElement;
+        const savedTheme = localStorage.getItem("tol_theme") || "light";
+        html.setAttribute("data-theme", savedTheme);
+
+        document.addEventListener("DOMContentLoaded", () => {
+          const themeBtn = document.getElementById("theme-btn");
+          const themeIcon = document.getElementById("theme-icon");
+
+          if (themeIcon) {
+            themeIcon.textContent = savedTheme === "dark" ? "🌙" : "☀️";
+          }
+
+          if (themeBtn && themeIcon) {
+            themeBtn.addEventListener("click", () => {
+              const currentTheme = html.getAttribute("data-theme");
+              const newTheme = currentTheme === "light" ? "dark" : "light";
+
+              html.setAttribute("data-theme", newTheme);
+              localStorage.setItem("tol_theme", newTheme);
+              themeIcon.textContent = newTheme === "dark" ? "🌙" : "☀️";
+            });
+          }
+        });
+      })();
+
+      // Handle enter button click
+      document.addEventListener("DOMContentLoaded", () => {
+        const enterBtn = document.getElementById("enter-btn");
+        const welcomeCard = document.querySelector(".welcome-card");
+
+        if (enterBtn && welcomeCard) {
+          enterBtn.addEventListener("click", () => {
+            // Set flag that user has visited
+            localStorage.setItem("tol_hasVisited", "true");
+
+            // Add exit animation class
+            welcomeCard.classList.add("exiting");
+
+            // Navigate after animation completes
+            setTimeout(() => {
+              window.location.href = "/";
+            }, 500);
           });
         }
       });
-    })();
-
-    // Handle enter button click - pure vanilla JS
-    document.addEventListener('DOMContentLoaded', () => {
-      const enterBtn = document.getElementById('enter-btn');
-      const welcomeCard = document.querySelector('.welcome-card');
-      
-      if (enterBtn && welcomeCard) {
-        enterBtn.addEventListener('click', () => {
-          // Set flag that user has visited
-          localStorage.setItem('tol_hasVisited', 'true');
-          
-          // Add exit animation class
-          welcomeCard.classList.add('exiting');
-          
-          // Navigate after animation completes
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 500);
-        });
-      }
-    });
-  </script>
-</body>
+    </script>
+  </body>
 </html>

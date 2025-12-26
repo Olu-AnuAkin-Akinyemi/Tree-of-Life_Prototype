@@ -1,0 +1,16 @@
+# Cloudflare Pages configuration
+# Docs: https://developers.cloudflare.com/pages/functions/wrangler-configuration/
+
+name = "neteru-tree-of-life"
+compatibility_date = "2024-12-01"
+
+# Pages-specific configuration
+pages_build_output_dir = "./dist"
+
+# Uncomment below if you add Cloudflare Pages Functions in the future
+# [[pages.functions]]
+# module = "./functions"
+
+# Environment variables (add secrets in Cloudflare dashboard, not here)
+# [vars]
+# PUBLIC_API_URL = "https://api.example.com"
